@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Be My Valentine?</title>
+  <style>
+    :root {
+      --bg1: #ffdde1;
+      --bg2: #ee9ca7;
+      --text: #2b2b2b;
+      --yes: #22c55e;
+      --no: #ef4444;
+      --card: rgba(255,255,255,.75);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top, var(--bg1), var(--bg2));
+      overflow: hidden;
+    }
+
+    .wrap {
+      width: min(900px, 92vw);
+      text-align: center;
+      padding: 32px 20px;
+    }
+
+    h1 {
+      font-size: clamp(2.2rem, 6vw, 4.2rem);
+      line-height: 1.05;
+      margin: 0 0 22px;
+      letter-spacing: -0.02em;
+      text-shadow: 0 10px 30px rgba(0,0,0,.10);
+    }
+
+    .panel {
+      display: grid;
+      gap: 16px;
+      justify-items: center;
+      padding: 22px 18px;
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,.65);
+      border-radius: 18px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 18px 60px rgba(0,0,0,.12);
+    }
+
+    .btnRow {
+      position: relative;
+      width: min(520px, 90vw);
+      height: 84px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+    }
+
+    button {
+      appearance: none;
+      border: 0;
+      padding: 14px 22px;
+      border-radius: 999px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 12px 26px rgba(0,0,0,.18);
+      transition: transform .12s ease, filter .12s ease;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button:active { transform: translateY(1px) scale(0.99); }
+
+    #yesBtn { background: var(--yes); color: white; }
+    #yesBtn:hover { filter: brightness(1.05); }
+
+    #noBtn {
+      position: absolute;
+      left: 60%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--no);
+      color: white;
+      touch-action: manipulation;
+    }
+
+    /* Reveal area: fade+pop animation */
+    #reveal {
+      width: min(520px, 90vw);
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.65);
+      box-shadow: 0 18px 60px rgba(0,0,0,.18);
+      background: rgba(255,255,255,.65);
+
+      /* start hidden */
+      opacity: 0;
+      transform: translateY(10px) scale(0.98);
+      pointer-events: none;
+      max-height: 0;
+    }
+
+    #reveal.show {
+      pointer-events: auto;
+      max-height: 999px; /* lets it expand without knowing image height */
+      animation: fadePop 520ms ease-out forwards;
+    }
+
+    @keyframes fadePop {
+      0%   { opacity: 0; transform: translateY(10px) scale(0.98); }
+      60%  { opacity: 1; transform: translateY(0px) scale(1.01); }
+      100% { opacity: 1; transform: translateY(0px) scale(1); }
+    }
+
+    #reveal img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .note {
+      font-size: .95rem;
+      opacity: .8;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>Will you be my valentine?</h1>
+
+    <section class="panel" aria-live="polite">
+      <div class="btnRow" id="arena">
+        <button id="yesBtn" type="button">Yes 💖</button>
+        <button id="noBtn" type="button" aria-label="No (good luck clicking)">No 🙃</button>
+      </div>
+
+      <div id="reveal" aria-hidden="true">
+        <!-- Put your image in the repo and name it "valentine.jpg" (or change the src). -->
+        <img src="valentine.jpg" alt="A special photo" />
+      </div>
+
+      <p class="note">(Tip: “No” gets faster every time 😄)</p>
+    </section>
+  </main>
+
+  <script>
+    const arena = document.getElementById('arena');
+    const noBtn = document.getElementById('noBtn');
+    const yesBtn = document.getElementById('yesBtn');
+    const reveal = document.getElementById('reveal');
+
+    // "Frantic" state
+    let dodges = 0;
+    let jitterTimer = null;
+
+    // Utility: clamp
+    const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+
+    // Get arena bounds in local coordinates
+    function getArenaSize() {
+      const r = arena.getBoundingClientRect();
+      return { w: r.width, h: r.height };
+    }
+
+    // Random position, biased to move farther as dodges increase
+    function randomSpot(btnW, btnH) {
+      const { w, h } = getArenaSize();
+      const padding = 6;
+      const maxX = w - btnW - padding;
+      const maxY = h - btnH - padding;
+
+      const x = padding + Math.random() * Math.max(1, maxX - padding);
+      const y = padding + Math.random() * Math.max(1, maxY - padding);
+
+      return {
+        x: clamp(x, padding, maxX),
+        y: clamp(y, padding, maxY)
+      };
+    }
+
+    function dodge() {
+      dodges++;
+
+      const btnRect = noBtn.getBoundingClientRect();
+      const btnW = btnRect.width;
+      const btnH = btnRect.height;
+
+      const { x, y } = randomSpot(btnW, btnH);
+
+      // Faster + snappier as it gets more frantic
+      const duration = clamp(220 - dodges * 12, 70, 220);
+
+      noBtn.animate(
+        [
+          { left: noBtn.style.left || '60%', top: noBtn.style.top || '50%' },
+          { left: x + 'px', top: y + 'px' }
+        ],
+        { duration, easing: 'ease-out', fill: 'forwards' }
+      );
+
+      noBtn.style.left = x + 'px';
+      noBtn.style.top = y + 'px';
+      noBtn.style.transform = 'translate(0, 0)';
+
+      // Start/upgrade jitter mode after a few dodges
+      startJitter();
+    }
+
+    function startJitter() {
+      // No jitter until it has dodged a bit
+      const shouldJitter = dodges >= 3;
+      if (!shouldJitter) return;
+
+      // Clear old timer
+      if (jitterTimer) clearInterval(jitterTimer);
+
+      // More dodges => more frequent jitter
+      const interval = clamp(650 - dodges * 35, 120, 650);
+
+      jitterTimer = setInterval(() => {
+        // only jitter if still visible
+        if (noBtn.style.display === 'none') return;
+
+        const btnRect = noBtn.getBoundingClientRect();
+        const btnW = btnRect.width;
+        const btnH = btnRect.height;
+
+        // Smaller, quick micro-moves
+        const { w, h } = getArenaSize();
+        const padding = 6;
+        const maxX = w - btnW - padding;
+        const maxY = h - btnH - padding;
+
+        // Current position (parse px); if not set, pick a baseline
+        let curX = parseFloat(noBtn.style.left);
+        let curY = parseFloat(noBtn.style.top);
+        if (Number.isNaN(curX) || Number.isNaN(curY)) {
+          curX = maxX * 0.6;
+          curY = maxY * 0.5;
+        }
+
+        // jitter amplitude grows slightly
+        const amp = clamp(6 + dodges * 1.2, 6, 22);
+        const nx = clamp(curX + (Math.random() * 2 - 1) * amp, padding, maxX);
+        const ny = clamp(curY + (Math.random() * 2 - 1) * amp, padding, maxY);
+
+        const d = clamp(140 - dodges * 4, 60, 140);
+
+        noBtn.animate(
+          [{ left: curX + 'px', top: curY + 'px' }, { left: nx + 'px', top: ny + 'px' }],
+          { duration: d, easing: 'ease-out', fill: 'forwards' }
+        );
+        noBtn.style.left = nx + 'px';
+        noBtn.style.top = ny + 'px';
+      }, interval);
+    }
+
+    // Desktop: as soon as mouse gets close, dodge.
+    // Using pointerenter + pointermove makes it “unfair” in a fun way.
+    noBtn.addEventListener('pointerenter', dodge);
+    noBtn.addEventListener('pointermove', () => {
+      // After a few dodges, it dodges even more aggressively while the pointer is near
+      if (dodges >= 2) dodge();
+    });
+
+    // Mobile: dodge on touch
+    noBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      dodge();
+    }, { passive: false });
+
+    // If someone somehow clicks "No", be playful
+    noBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      dodge();
+    });
+
+    // Yes reveals the image with fade+pop
+    yesBtn.addEventListener('click', () => {
+      reveal.classList.add('show');
+      reveal.setAttribute('aria-hidden', 'false');
+      yesBtn.textContent = 'Yay!! 💘';
+      noBtn.style.display = 'none';
+      if (jitterTimer) clearInterval(jitterTimer);
+    });
+
+    // If window resizes, keep "No" inside the arena
+    window.addEventListener('resize', () => {
+      if (noBtn.style.display === 'none') return;
+      // Force a dodge to re-place it safely
+      dodge();
+    });
+  </script>
+</body>
+</html>
