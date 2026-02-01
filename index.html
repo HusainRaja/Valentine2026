@@ -145,6 +145,15 @@
       opacity: .78;
     }
 
+    .challenge{
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 600;
+      opacity: 0.75;
+      letter-spacing: 0.02em;
+    }
+
+
     .btnRow{
       position:relative;
       width: min(520px, 90vw);
@@ -251,6 +260,7 @@
 
       <h1 id="title">Mishti, will you be my valentine?</h1>
       <p class="sub" id="sub">I promise cuddles, silly jokes, nerdy explanations, and adventures!</p>
+      <p class="challenge" id="challenge">try to hit no, if you can!</p>
 
       <div class="btnRow" id="arena">
         <button id="yesBtn" type="button">Yes 💖</button>
@@ -292,6 +302,7 @@
     const sub = document.getElementById('sub');
     const arena = document.getElementById('arena');
     const yesBtn = document.getElementById('yesBtn');
+    const challenge = document.getElementById('challenge');
     const noBtn = document.getElementById('noBtn');
 
     const revealWrap = document.getElementById('revealWrap');
@@ -524,6 +535,8 @@
 
       // Remove subtext for a cleaner look once revealed
       if (sub) sub.style.display = 'none';
+      if (challenge) challenge.style.display = 'none';
+
 
       // Make it feel celebratory
       yesBtn.textContent = 'Yay!! 💘';
