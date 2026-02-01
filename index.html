@@ -19,36 +19,35 @@
 
     body {
       margin: 0;
-      min-height: 100vh;
+      min-height: 100svh; /* safe viewport height for mobile browsers */
       display: grid;
       place-items: center;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
       color: var(--text);
       background: radial-gradient(circle at top, var(--bg1), var(--bg2));
-      overflow-x: hidden;
+      overflow: hidden;
     }
 
     .wrap {
       width: min(900px, 92vw);
       text-align: center;
-      padding: 32px 20px;
+      padding: 24px 16px;
     }
 
     h1 {
-      font-size: clamp(2.4rem, 6vw, 4.4rem);
+      font-size: clamp(2.2rem, 6vw, 4.2rem);
       line-height: 1.05;
-      margin: 0 0 24px;
+      margin: 0 0 20px;
       letter-spacing: -0.02em;
       text-shadow: 0 10px 30px rgba(0,0,0,.12);
     }
 
     .panel {
       display: grid;
-      gap: 18px;
+      gap: 16px;
       justify-items: center;
-      padding: 22px 18px 26px;
+      padding: 20px 16px;
       background: var(--card);
-      border: 1px solid rgba(255,255,255,.65);
       border-radius: 18px;
       backdrop-filter: blur(8px);
       box-shadow: 0 18px 60px rgba(0,0,0,.12);
@@ -57,24 +56,22 @@
     .btnRow {
       position: relative;
       width: min(520px, 90vw);
-      height: 90px;
+      height: 88px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
     button {
-      appearance: none;
       border: 0;
       padding: 14px 26px;
       border-radius: 999px;
-      font-size: 1.15rem;
+      font-size: 1.1rem;
       font-weight: 700;
       cursor: pointer;
       box-shadow: 0 12px 26px rgba(0,0,0,.18);
       transition: transform .12s ease, filter .12s ease;
       user-select: none;
-      -webkit-tap-highlight-color: transparent;
     }
 
     button:active {
@@ -87,10 +84,6 @@
       z-index: 2;
     }
 
-    #yesBtn:hover {
-      filter: brightness(1.05);
-    }
-
     #noBtn {
       position: absolute;
       left: 62%;
@@ -99,21 +92,15 @@
       background: var(--no);
       color: white;
       z-index: 1;
-      touch-action: manipulation;
     }
 
     /* Reveal container */
     #reveal {
-      width: min(520px, 90vw);
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,.65);
-      box-shadow: 0 18px 60px rgba(0,0,0,.18);
-      background: rgba(255,255,255,.65);
-
       display: none;
       opacity: 0;
       transform: translateY(10px) scale(0.98);
+      width: 100%;
+      max-width: 520px;
     }
 
     #reveal.show {
@@ -127,11 +114,16 @@
       100% { opacity: 1; transform: translateY(0) scale(1); }
     }
 
+    /* ⭐ AUTO-FIT IMAGE (NO SCROLL, ALL DEVICES) */
     #reveal img {
       width: 100%;
       height: auto;
+      max-height: 70svh;        /* fits within screen */
+      object-fit: contain;     /* never crop */
       display: block;
-      object-fit: contain;
+      margin: 0 auto;
+      border-radius: 14px;
+      box-shadow: 0 18px 60px rgba(0,0,0,.18);
     }
 
     .note {
@@ -148,15 +140,15 @@
 
     <section class="panel">
       <div class="btnRow" id="arena">
-        <button id="yesBtn" type="button">Yes 💖</button>
-        <button id="noBtn" type="button">No 🙃</button>
+        <button id="yesBtn">Yes 💖</button>
+        <button id="noBtn">No 🙃</button>
       </div>
 
       <div id="reveal">
-        <img src="/Valentine2026/Valentine.jpg" alt="A special photo" />
+        <img src="/Valentine2026/Valentine.jpg?v=3" alt="A special photo" />
       </div>
 
-      <p class="note">(Try clicking “No” 😄)</p>
+      <p class="note">(You can try “No”… if you dare 😄)</p>
     </section>
   </main>
 
@@ -196,7 +188,7 @@
 
       noBtn.style.left = x + 'px';
       noBtn.style.top = y + 'px';
-      noBtn.style.transform = 'translate(0, 0)';
+      noBtn.style.transform = 'translate(0,0)';
 
       startJitter();
     }
@@ -248,11 +240,6 @@
       yesBtn.textContent = 'Yay!! 💘';
       noBtn.style.display = 'none';
       if (jitterTimer) clearInterval(jitterTimer);
-    });
-
-    window.addEventListener('resize', () => {
-      if (noBtn.style.display === 'none') return;
-      dodge();
     });
   </script>
 </body>
