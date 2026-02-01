@@ -7,29 +7,72 @@
 
   <style>
     :root{
-      --bg1:#ffdde1;
-      --bg2:#ee9ca7;
+      --bg1:#ffd6e5;
+      --bg2:#ff8fb1;
+      --bg3:#ff5c93;
       --text:#2b2b2b;
       --yes:#22c55e;
       --no:#ef4444;
-      --card:rgba(255,255,255,.78);
+      --card:rgba(255,255,255,.80);
+      --stroke:rgba(255,255,255,.65);
+      --shadow: rgba(0,0,0,.14);
     }
 
     *{ box-sizing:border-box; }
     html, body { height:100%; }
     body{
       margin:0;
-      height:100svh;              /* mobile-safe viewport height */
-      overflow:hidden;            /* 🔒 no scrolling */
+      height:100svh;
+      overflow:hidden; /* 🔒 no scroll */
       display:grid;
       place-items:center;
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
       color:var(--text);
-      background:radial-gradient(circle at top, var(--bg1), var(--bg2));
+      background:
+        radial-gradient(circle at 20% 10%, rgba(255,255,255,.55), transparent 40%),
+        radial-gradient(circle at 80% 20%, rgba(255,255,255,.35), transparent 45%),
+        radial-gradient(circle at 50% 80%, rgba(255,255,255,.25), transparent 50%),
+        radial-gradient(circle at top, var(--bg1), var(--bg2) 55%, var(--bg3));
+    }
+
+    /* Subtle floating hearts layer */
+    .hearts{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:0;
+      overflow:hidden;
+      opacity:.35;
+    }
+    .heart{
+      position:absolute;
+      width:16px;
+      height:16px;
+      transform: rotate(45deg);
+      background: rgba(255,255,255,.9);
+      border-radius: 4px;
+      filter: drop-shadow(0 10px 22px rgba(0,0,0,.12));
+      animation: floatUp linear infinite;
+    }
+    .heart:before, .heart:after{
+      content:"";
+      position:absolute;
+      width:16px;
+      height:16px;
+      background: inherit;
+      border-radius:50%;
+    }
+    .heart:before{ left:-8px; top:0; }
+    .heart:after{ left:0; top:-8px; }
+
+    @keyframes floatUp{
+      from { transform: translateY(110svh) rotate(45deg) scale(var(--s)); opacity: 0; }
+      10%  { opacity: .95; }
+      100% { transform: translateY(-20svh) rotate(45deg) scale(var(--s)); opacity: 0; }
     }
 
     /* Confetti canvas overlay */
-    #confetti {
+    #confetti{
       position:fixed;
       inset:0;
       width:100%;
@@ -38,225 +81,258 @@
       z-index:9999;
     }
 
+    /* Layout */
     .wrap{
-      width:min(900px, 94vw);
-      height:100svh;              /* keep everything within viewport */
-      padding:14px 14px 16px;
+      position:relative;
+      z-index:1;
+      width:min(920px, 94vw);
+      height:100svh;
+      padding: 18px 14px 16px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center; /* center all content */
+      align-items:center;
+      gap: 14px;
+    }
+
+    /* The hero card contains the question + buttons, perfectly centered */
+    .hero{
+      width:min(640px, 94vw);
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      border-radius: 22px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 24px 80px var(--shadow);
+      padding: 22px 18px 20px;
       display:flex;
       flex-direction:column;
       align-items:center;
-      justify-content:center;
-      gap:12px;
+      gap: 14px;
+      text-align:center;
+    }
+
+    /* Cute top badge */
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.62);
+      border: 1px solid rgba(255,255,255,.75);
+      font-weight: 800;
+      letter-spacing: .02em;
+      box-shadow: 0 10px 28px rgba(0,0,0,.10);
+      user-select:none;
     }
 
     h1{
-      margin:0;
-      text-align:center;
-      font-size:clamp(1.9rem, 6vw, 3.6rem);
-      line-height:1.05;
-      letter-spacing:-0.02em;
-      text-shadow:0 10px 30px rgba(0,0,0,.12);
-      flex:0 0 auto;
+      margin: 4px 0 6px;
+      font-size: clamp(2.0rem, 6vw, 3.8rem);
+      line-height: 1.03;
+      letter-spacing: -0.02em;
+      text-shadow: 0 12px 34px rgba(0,0,0,.10);
     }
 
-    .panel{
-      width:min(560px, 94vw);
-      background:var(--card);
-      border:1px solid rgba(255,255,255,.65);
-      border-radius:18px;
-      backdrop-filter: blur(8px);
-      box-shadow:0 18px 60px rgba(0,0,0,.12);
-
-      padding:14px 14px 14px;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:12px;
-
-      /* Important: let panel shrink if needed so no scroll happens */
-      min-height:0;
-      flex: 1 1 auto;
-      justify-content:flex-start;
+    .sub{
+      margin:0;
+      font-size: 1rem;
+      opacity: .78;
     }
 
     .btnRow{
       position:relative;
-      width:min(520px, 90vw);
-      height:84px;
+      width: min(520px, 90vw);
+      height: 86px;
       display:flex;
       align-items:center;
       justify-content:center;
-      flex:0 0 auto;
+      margin-top: 6px;
     }
 
     button{
       border:0;
-      padding:14px 24px;
-      border-radius:999px;
-      font-size:1.1rem;
-      font-weight:800;
+      padding: 14px 26px;
+      border-radius: 999px;
+      font-size: 1.12rem;
+      font-weight: 900;
       cursor:pointer;
-      box-shadow:0 12px 26px rgba(0,0,0,.18);
-      transition:transform .12s ease, filter .12s ease;
+      box-shadow: 0 14px 30px rgba(0,0,0,.18);
+      transition: transform .12s ease, filter .12s ease;
       user-select:none;
       -webkit-tap-highlight-color:transparent;
       white-space:nowrap;
     }
     button:active{ transform: translateY(1px) scale(.99); }
+    button:hover{ filter: brightness(1.06); }
 
     #yesBtn{
-      background:var(--yes);
+      background: linear-gradient(180deg, #2ee77a, #18b958);
       color:#fff;
-      z-index:2;
-      position:relative;
+      z-index: 2;
+      position: relative;
     }
 
-    /* NO is always above YES visually */
+    /* NO is always above YES visually and stays within arena without overlapping YES */
     #noBtn{
       position:absolute;
-      left:62%;
-      top:50%;
-      transform:translate(-50%,-50%);
-      background:var(--no);
+      left: 62%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(180deg, #ff5b5b, #e11d48);
       color:#fff;
-      z-index:3;         /* ✅ cannot hide behind yes */
-      touch-action:manipulation;
+      z-index: 3;
+      touch-action: manipulation;
     }
 
-    /* Reveal area */
-    #reveal{
-      width:100%;
+    /* Reveal image card (hidden until Yes) */
+    .revealWrap{
+      width: min(640px, 94vw);
       display:none;
-      opacity:0;
-      transform: translateY(10px) scale(.98);
-      min-height:0;      /* allow flex container to shrink */
-      flex: 1 1 auto;    /* take remaining space */
       align-items:center;
       justify-content:center;
     }
-
-    #reveal.show{
+    .revealWrap.show{
       display:flex;
       animation: fadePop 520ms ease-out forwards;
     }
 
     @keyframes fadePop{
-      0% { opacity:0; transform: translateY(10px) scale(.98); }
-      60%{ opacity:1; transform: translateY(0) scale(1.01); }
-      100%{ opacity:1; transform: translateY(0) scale(1); }
+      0%   { opacity:0; transform: translateY(10px) scale(.98); }
+      60%  { opacity:1; transform: translateY(0) scale(1.01); }
+      100% { opacity:1; transform: translateY(0) scale(1); }
     }
 
-    #reveal img{
+    .photoCard{
+      width:100%;
+      background: rgba(255,255,255,.68);
+      border: 1px solid rgba(255,255,255,.75);
+      border-radius: 22px;
+      padding: 12px;
+      box-shadow: 0 24px 90px rgba(0,0,0,.16);
+    }
+
+    /* The magic: JS sets max-height so NO scroll ever */
+    #photo{
       width:100%;
       height:auto;
-      object-fit:contain;
       display:block;
-
-      /* JS will set max-height precisely so there is never scroll */
-      max-height: 40svh;
-
-      border-radius:14px;
-      box-shadow:0 18px 60px rgba(0,0,0,.18);
+      object-fit:contain;
+      max-height: 40svh; /* overwritten by JS for exact fit */
+      border-radius: 16px;
+      box-shadow: 0 18px 60px rgba(0,0,0,.18);
     }
 
-    #note{
-      margin:0;
-      font-size:.95rem;
-      opacity:.8;
-      flex:0 0 auto;
-      text-align:center;
+    /* small screen tuning */
+    @media (max-height: 680px){
+      .hero{ padding: 18px 14px 16px; gap: 12px; }
+      .btnRow{ height: 78px; }
+      button{ padding: 13px 22px; font-size: 1.06rem; }
+      .badge{ padding: 7px 10px; }
     }
-
-    /* When image is revealed, we tighten spacing slightly for small screens */
-    .tight h1{ font-size:clamp(1.7rem, 5.5vw, 3.2rem); }
-    .tight .panel{ padding:12px; gap:10px; }
   </style>
 </head>
 
 <body>
+  <!-- floating hearts -->
+  <div class="hearts" aria-hidden="true" id="hearts"></div>
+
+  <!-- confetti -->
   <canvas id="confetti"></canvas>
 
   <main class="wrap" id="wrap">
-    <h1 id="title">Will you be my valentine?</h1>
+    <section class="hero" id="hero">
+      <div class="badge">💘 Valentine 2026</div>
 
-    <section class="panel" id="panel">
+      <h1 id="title">Will you be my valentine?</h1>
+      <p class="sub" id="sub">I promise snacks, laughs, and extra hugs.</p>
+
       <div class="btnRow" id="arena">
         <button id="yesBtn" type="button">Yes 💖</button>
         <button id="noBtn" type="button" aria-label="No (good luck clicking)">No 🙃</button>
       </div>
+    </section>
 
-      <div id="reveal" aria-hidden="true">
-        <!-- Your image path (case-sensitive) -->
-        <img id="photo" src="/Valentine2026/Valentine.jpg?v=7" alt="A special photo" />
+    <section class="revealWrap" id="revealWrap" aria-hidden="true">
+      <div class="photoCard">
+        <img id="photo" src="/Valentine2026/Valentine.jpg?v=10" alt="A special photo" />
       </div>
-
-      <p id="note">(Try clicking “No” 😄)</p>
     </section>
   </main>
 
   <script>
-    const wrap   = document.getElementById('wrap');
-    const panel  = document.getElementById('panel');
-    const title  = document.getElementById('title');
-    const arena  = document.getElementById('arena');
-    const noBtn  = document.getElementById('noBtn');
-    const yesBtn = document.getElementById('yesBtn');
-    const reveal = document.getElementById('reveal');
-    const note   = document.getElementById('note');
-    const photo  = document.getElementById('photo');
+    // ---------------- Floating hearts ----------------
+    const hearts = document.getElementById('hearts');
+    // Create a handful of hearts with different speeds/sizes/positions
+    const HEART_COUNT = 18;
+    for (let i = 0; i < HEART_COUNT; i++) {
+      const h = document.createElement('div');
+      h.className = 'heart';
+      const left = Math.random() * 100;
+      const dur = 7 + Math.random() * 8;         // 7s–15s
+      const delay = -Math.random() * dur;        // stagger
+      const scale = (0.7 + Math.random() * 1.6); // 0.7–2.3
+      h.style.left = left + 'vw';
+      h.style.animationDuration = dur + 's';
+      h.style.animationDelay = delay + 's';
+      h.style.setProperty('--s', scale);
+      h.style.opacity = (0.18 + Math.random() * 0.35).toFixed(2);
+      hearts.appendChild(h);
+    }
 
-    // ---------- Make image always fit (no scroll) ----------
-    function fitImageToViewport() {
-      // Total usable viewport height (svh handled by CSS; use innerHeight for precision)
+    // ---------------- Elements ----------------
+    const wrap = document.getElementById('wrap');
+    const hero = document.getElementById('hero');
+    const title = document.getElementById('title');
+    const sub = document.getElementById('sub');
+    const arena = document.getElementById('arena');
+    const yesBtn = document.getElementById('yesBtn');
+    const noBtn = document.getElementById('noBtn');
+
+    const revealWrap = document.getElementById('revealWrap');
+    const photo = document.getElementById('photo');
+
+    // ---------------- Make photo always fit (no scroll, no zoom) ----------------
+    function fitPhotoToViewport() {
+      // Compute exact remaining vertical space in viewport after hero is shown + margins.
       const vh = window.innerHeight;
 
-      const wrapRect  = wrap.getBoundingClientRect();
-      const titleRect = title.getBoundingClientRect();
-      const panelRect = panel.getBoundingClientRect();
-      const arenaRect = arena.getBoundingClientRect();
-      const noteRect  = (note && note.offsetParent !== null) ? note.getBoundingClientRect() : { height: 0 };
-
-      // How much vertical space we have INSIDE the panel for the image:
-      // panel height itself is already within wrap/viewport, but we compute remaining after controls.
-      // padding + gaps are already in layout; we measure actual remaining via panel height minus known blocks.
-      const panelStyles = getComputedStyle(panel);
-      const padTop = parseFloat(panelStyles.paddingTop) || 0;
-      const padBottom = parseFloat(panelStyles.paddingBottom) || 0;
-
-      // If reveal is visible, it will take remaining flex space. We want the img to fit within that remaining.
-      // Compute maximum possible image height as:
-      // viewport height minus (wrap padding + title height + panel paddings + arena height + note height + some safety)
       const wrapStyles = getComputedStyle(wrap);
       const wrapPadTop = parseFloat(wrapStyles.paddingTop) || 0;
       const wrapPadBottom = parseFloat(wrapStyles.paddingBottom) || 0;
 
-      const safety = 14; // tiny buffer to avoid 1px overflow on some mobile browsers
+      const heroRect = hero.getBoundingClientRect();
 
-      const maxImgH = vh
+      // If reveal isn't shown, nothing to do yet
+      if (!revealWrap.classList.contains('show')) return;
+
+      // We want: hero + gap + photoCard to fit inside viewport
+      // There is a gap between hero and revealWrap via wrap gap (approx 14px).
+      const gap = 14;
+      const safety = 14; // tiny buffer to avoid 1px overflow
+
+      // Photo card has padding 12px top/bottom.
+      const photoCardPadding = 24;
+
+      const maxPhotoHeight = vh
         - wrapPadTop - wrapPadBottom
-        - titleRect.height
-        - 12 /* wrap gap approx */
-        - padTop - padBottom
-        - arenaRect.height
-        - (reveal.classList.contains('show') ? 10 : 0)
-        - noteRect.height
+        - heroRect.height
+        - gap
+        - photoCardPadding
         - safety;
 
-      const finalMax = Math.max(120, Math.floor(maxImgH)); // keep it sane
-      photo.style.maxHeight = finalMax + "px";
+      photo.style.maxHeight = Math.max(120, Math.floor(maxPhotoHeight)) + 'px';
     }
 
-    // Call after image loads (so browser knows dimensions), and on resize
-    window.addEventListener('resize', fitImageToViewport);
-    photo.addEventListener('load', fitImageToViewport);
+    window.addEventListener('resize', fitPhotoToViewport);
+    photo.addEventListener('load', fitPhotoToViewport);
 
-    // ---------- "No" button frantic + never overlaps YES ----------
+    // ---------------- "No" button: frantic + never overlaps YES ----------------
     let dodges = 0;
     let jitterTimer = null;
 
     const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
-
-    function intersects(a, b) {
+    function intersects(a, b){
       return !(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom);
     }
 
@@ -266,16 +342,13 @@
       const yesRect = yesBtn.getBoundingClientRect();
 
       const padding = 6;
-
       const maxX = arenaRect.width - noRect.width - padding;
       const maxY = arenaRect.height - noRect.height - padding;
 
-      // try a few random spots that don't overlap YES
-      for (let i = 0; i < 20; i++) {
+      for (let i = 0; i < 24; i++) {
         const x = clamp(padding + Math.random() * maxX, padding, maxX);
         const y = clamp(padding + Math.random() * maxY, padding, maxY);
 
-        // construct proposed rect in viewport coords
         const proposed = {
           left: arenaRect.left + x,
           top: arenaRect.top + y,
@@ -283,19 +356,16 @@
           bottom: arenaRect.top + y + noRect.height
         };
 
-        // slightly inflate yes rect so No doesn't sit too close
-        const yesInflate = 10;
+        const inflate = 12;
         const yesFat = {
-          left: yesRect.left - yesInflate,
-          top: yesRect.top - yesInflate,
-          right: yesRect.right + yesInflate,
-          bottom: yesRect.bottom + yesInflate
+          left: yesRect.left - inflate,
+          top: yesRect.top - inflate,
+          right: yesRect.right + inflate,
+          bottom: yesRect.bottom + inflate
         };
 
         if (!intersects(proposed, yesFat)) return { x, y };
       }
-
-      // fallback: shove to left side
       return { x: padding, y: padding };
     }
 
@@ -345,27 +415,6 @@
         let nx = clamp(curX + (Math.random()*2-1)*amp, padding, maxX);
         let ny = clamp(curY + (Math.random()*2-1)*amp, padding, maxY);
 
-        // keep away from YES during jitter too
-        const noRect = noBtn.getBoundingClientRect();
-        const yesRect = yesBtn.getBoundingClientRect();
-        const proposed = {
-          left: arenaRect.left + nx,
-          top: arenaRect.top + ny,
-          right: arenaRect.left + nx + noRect.width,
-          bottom: arenaRect.top + ny + noRect.height
-        };
-        const yesInflate = 10;
-        const yesFat = {
-          left: yesRect.left - yesInflate,
-          top: yesRect.top - yesInflate,
-          right: yesRect.right + yesInflate,
-          bottom: yesRect.bottom + yesInflate
-        };
-        if (intersects(proposed, yesFat)) {
-          const alt = pickSafeSpot();
-          nx = alt.x; ny = alt.y;
-        }
-
         const d = clamp(140 - dodges * 4, 60, 140);
 
         noBtn.animate(
@@ -383,7 +432,7 @@
     noBtn.addEventListener('touchstart', e => { e.preventDefault(); dodge(); }, { passive:false });
     noBtn.addEventListener('click', e => { e.preventDefault(); dodge(); });
 
-    // ---------- Confetti ----------
+    // ---------------- Confetti ----------------
     const canvas = document.getElementById('confetti');
     const ctx = canvas.getContext('2d');
 
@@ -395,51 +444,46 @@
       canvas.style.height = window.innerHeight + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
-    window.addEventListener('resize', () => { resizeCanvas(); });
+    window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
     let confettiRunning = false;
     let confettiParticles = [];
     let confettiEndAt = 0;
 
-    function startConfetti(ms = 2200) {
+    function startConfetti(ms = 2400) {
       const now = performance.now();
       confettiEndAt = now + ms;
       confettiRunning = true;
 
-      // burst
-      const count = 220;
+      const count = 240;
       for (let i = 0; i < count; i++) {
         confettiParticles.push({
           x: Math.random() * window.innerWidth,
-          y: -20 - Math.random() * window.innerHeight * 0.3,
+          y: -20 - Math.random() * window.innerHeight * 0.35,
           vx: (Math.random() * 2 - 1) * 1.8,
-          vy: 2 + Math.random() * 4.2,
-          size: 4 + Math.random() * 6,
+          vy: 2.2 + Math.random() * 4.6,
+          size: 4 + Math.random() * 7,
           rot: Math.random() * Math.PI,
-          vr: (Math.random() * 2 - 1) * 0.12,
-          // random bright colors
-          color: `hsl(${Math.floor(Math.random() * 360)}, 90%, 60%)`,
-          shape: Math.random() < 0.25 ? "circle" : "rect"
+          vr: (Math.random() * 2 - 1) * 0.14,
+          color: `hsl(${Math.floor(Math.random() * 360)}, 92%, 62%)`,
+          shape: Math.random() < 0.3 ? "circle" : "rect"
         });
       }
-
       requestAnimationFrame(tickConfetti);
     }
 
-    function tickConfetti(t) {
+    function tickConfetti() {
       if (!confettiRunning) return;
 
       ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
-      confettiParticles = confettiParticles.filter(p => p.y < window.innerHeight + 60);
+      confettiParticles = confettiParticles.filter(p => p.y < window.innerHeight + 70);
 
       for (const p of confettiParticles) {
         p.x += p.vx;
         p.y += p.vy;
         p.rot += p.vr;
-
-        // slight drift
         p.vx *= 0.99;
 
         ctx.save();
@@ -452,7 +496,7 @@
           ctx.arc(0, 0, p.size * 0.45, 0, Math.PI * 2);
           ctx.fill();
         } else {
-          ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size * 0.6);
+          ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size * 0.65);
         }
         ctx.restore();
       }
@@ -464,36 +508,36 @@
         return;
       }
 
-      // If time is up, stop adding new particles—let them fall out naturally
-      if (now > confettiEndAt) {
-        // no-op
-      }
-
       requestAnimationFrame(tickConfetti);
     }
 
-    // ---------- Yes click: reveal, remove note, confetti, fit everything ----------
+    // ---------------- YES click behavior ----------------
     yesBtn.addEventListener('click', () => {
-      reveal.classList.add('show');
-      reveal.setAttribute('aria-hidden', 'false');
-      wrap.classList.add('tight');
+      // Reveal photo + confetti
+      revealWrap.classList.add('show');
+      revealWrap.setAttribute('aria-hidden', 'false');
 
+      // Remove subtext for a cleaner look once revealed
+      if (sub) sub.style.display = 'none';
+
+      // Make it feel celebratory
       yesBtn.textContent = 'Yay!! 💘';
       noBtn.style.display = 'none';
       if (jitterTimer) clearInterval(jitterTimer);
 
-      // remove note after yes
-      if (note) note.style.display = 'none';
-
-      // Fit image to exact remaining space (no scroll/zoom)
-      fitImageToViewport();
-
-      // Confetti 🎉
-      startConfetti(2400);
+      fitPhotoToViewport();
+      startConfetti(2600);
     });
 
-    // Initial fit pass (even before reveal; harmless)
-    fitImageToViewport();
+    // Initial place of NO button: ensure it isn't overlapping YES on load
+    window.addEventListener('load', () => {
+      // Nudge NO away if needed
+      dodge();
+      // But don't make it feel like it already dodged 1, reset state
+      dodges = 0;
+      if (jitterTimer) clearInterval(jitterTimer);
+      jitterTimer = null;
+    });
   </script>
 </body>
 </html>
