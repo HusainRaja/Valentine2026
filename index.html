@@ -90,27 +90,32 @@
       touch-action: manipulation;
     }
 
-    /* Reveal area: fade+pop animation */
-    #reveal {
-      width: min(520px, 90vw);
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,.65);
-      box-shadow: 0 18px 60px rgba(0,0,0,.18);
-      background: rgba(255,255,255,.65);
+  #reveal {
+  width: min(520px, 90vw);
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.65);
+  box-shadow: 0 18px 60px rgba(0,0,0,.18);
+  background: rgba(255,255,255,.65);
 
-      /* start hidden */
-      opacity: 0;
-      transform: translateY(10px) scale(0.98);
-      pointer-events: none;
-      max-height: 0;
-    }
+  /* hidden state */
+  display: none;
+  opacity: 0;
+  transform: translateY(10px) scale(0.98);
+}
 
-    #reveal.show {
-      pointer-events: auto;
-      max-height: 999px; /* lets it expand without knowing image height */
-      animation: fadePop 520ms ease-out forwards;
-    }
+#reveal.show {
+  display: block;                 /* <-- key change */
+  animation: fadePop 520ms ease-out forwards;
+}
+
+#reveal img {
+  width: 100%;
+  height: auto;                   /* <-- ensures no vertical cropping */
+  display: block;
+  object-fit: contain;            /* safe even if height gets set elsewhere */
+}
+
 
     @keyframes fadePop {
       0%   { opacity: 0; transform: translateY(10px) scale(0.98); }
