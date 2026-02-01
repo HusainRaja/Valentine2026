@@ -2,180 +2,307 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Be My Valentine?</title>
 
   <style>
-    :root {
-      --bg1: #ffdde1;
-      --bg2: #ee9ca7;
-      --text: #2b2b2b;
-      --yes: #22c55e;
-      --no: #ef4444;
-      --card: rgba(255,255,255,.75);
+    :root{
+      --bg1:#ffdde1;
+      --bg2:#ee9ca7;
+      --text:#2b2b2b;
+      --yes:#22c55e;
+      --no:#ef4444;
+      --card:rgba(255,255,255,.78);
     }
 
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      min-height: 100svh; /* safe viewport height for mobile browsers */
-      display: grid;
-      place-items: center;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      color: var(--text);
-      background: radial-gradient(circle at top, var(--bg1), var(--bg2));
-      overflow: hidden;
+    *{ box-sizing:border-box; }
+    html, body { height:100%; }
+    body{
+      margin:0;
+      height:100svh;              /* mobile-safe viewport height */
+      overflow:hidden;            /* 🔒 no scrolling */
+      display:grid;
+      place-items:center;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      color:var(--text);
+      background:radial-gradient(circle at top, var(--bg1), var(--bg2));
     }
 
-    .wrap {
-      width: min(900px, 92vw);
-      text-align: center;
-      padding: 24px 16px;
+    /* Confetti canvas overlay */
+    #confetti {
+      position:fixed;
+      inset:0;
+      width:100%;
+      height:100%;
+      pointer-events:none;
+      z-index:9999;
     }
 
-    h1 {
-      font-size: clamp(2.2rem, 6vw, 4.2rem);
-      line-height: 1.05;
-      margin: 0 0 20px;
-      letter-spacing: -0.02em;
-      text-shadow: 0 10px 30px rgba(0,0,0,.12);
+    .wrap{
+      width:min(900px, 94vw);
+      height:100svh;              /* keep everything within viewport */
+      padding:14px 14px 16px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:12px;
     }
 
-    .panel {
-      display: grid;
-      gap: 16px;
-      justify-items: center;
-      padding: 20px 16px;
-      background: var(--card);
-      border-radius: 18px;
+    h1{
+      margin:0;
+      text-align:center;
+      font-size:clamp(1.9rem, 6vw, 3.6rem);
+      line-height:1.05;
+      letter-spacing:-0.02em;
+      text-shadow:0 10px 30px rgba(0,0,0,.12);
+      flex:0 0 auto;
+    }
+
+    .panel{
+      width:min(560px, 94vw);
+      background:var(--card);
+      border:1px solid rgba(255,255,255,.65);
+      border-radius:18px;
       backdrop-filter: blur(8px);
-      box-shadow: 0 18px 60px rgba(0,0,0,.12);
+      box-shadow:0 18px 60px rgba(0,0,0,.12);
+
+      padding:14px 14px 14px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:12px;
+
+      /* Important: let panel shrink if needed so no scroll happens */
+      min-height:0;
+      flex: 1 1 auto;
+      justify-content:flex-start;
     }
 
-    .btnRow {
-      position: relative;
-      width: min(520px, 90vw);
-      height: 88px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .btnRow{
+      position:relative;
+      width:min(520px, 90vw);
+      height:84px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex:0 0 auto;
     }
 
-    button {
-      border: 0;
-      padding: 14px 26px;
-      border-radius: 999px;
-      font-size: 1.1rem;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 12px 26px rgba(0,0,0,.18);
-      transition: transform .12s ease, filter .12s ease;
-      user-select: none;
+    button{
+      border:0;
+      padding:14px 24px;
+      border-radius:999px;
+      font-size:1.1rem;
+      font-weight:800;
+      cursor:pointer;
+      box-shadow:0 12px 26px rgba(0,0,0,.18);
+      transition:transform .12s ease, filter .12s ease;
+      user-select:none;
+      -webkit-tap-highlight-color:transparent;
+      white-space:nowrap;
+    }
+    button:active{ transform: translateY(1px) scale(.99); }
+
+    #yesBtn{
+      background:var(--yes);
+      color:#fff;
+      z-index:2;
+      position:relative;
     }
 
-    button:active {
-      transform: translateY(1px) scale(0.99);
+    /* NO is always above YES visually */
+    #noBtn{
+      position:absolute;
+      left:62%;
+      top:50%;
+      transform:translate(-50%,-50%);
+      background:var(--no);
+      color:#fff;
+      z-index:3;         /* ✅ cannot hide behind yes */
+      touch-action:manipulation;
     }
 
-    #yesBtn {
-      background: var(--yes);
-      color: white;
-      z-index: 2;
+    /* Reveal area */
+    #reveal{
+      width:100%;
+      display:none;
+      opacity:0;
+      transform: translateY(10px) scale(.98);
+      min-height:0;      /* allow flex container to shrink */
+      flex: 1 1 auto;    /* take remaining space */
+      align-items:center;
+      justify-content:center;
     }
 
-    #noBtn {
-      position: absolute;
-      left: 62%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      background: var(--no);
-      color: white;
-      z-index: 1;
-    }
-
-    /* Reveal container */
-    #reveal {
-      display: none;
-      opacity: 0;
-      transform: translateY(10px) scale(0.98);
-      width: 100%;
-      max-width: 520px;
-    }
-
-    #reveal.show {
-      display: block;
+    #reveal.show{
+      display:flex;
       animation: fadePop 520ms ease-out forwards;
     }
 
-    @keyframes fadePop {
-      0%   { opacity: 0; transform: translateY(10px) scale(0.98); }
-      60%  { opacity: 1; transform: translateY(0) scale(1.01); }
-      100% { opacity: 1; transform: translateY(0) scale(1); }
+    @keyframes fadePop{
+      0% { opacity:0; transform: translateY(10px) scale(.98); }
+      60%{ opacity:1; transform: translateY(0) scale(1.01); }
+      100%{ opacity:1; transform: translateY(0) scale(1); }
     }
 
-    /* ⭐ AUTO-FIT IMAGE (NO SCROLL, ALL DEVICES) */
-    #reveal img {
-      width: 100%;
-      height: auto;
-      max-height: 70svh;        /* fits within screen */
-      object-fit: contain;     /* never crop */
-      display: block;
-      margin: 0 auto;
-      border-radius: 14px;
-      box-shadow: 0 18px 60px rgba(0,0,0,.18);
+    #reveal img{
+      width:100%;
+      height:auto;
+      object-fit:contain;
+      display:block;
+
+      /* JS will set max-height precisely so there is never scroll */
+      max-height: 40svh;
+
+      border-radius:14px;
+      box-shadow:0 18px 60px rgba(0,0,0,.18);
     }
 
-    .note {
-      font-size: .95rem;
-      opacity: .8;
-      margin: 0;
+    #note{
+      margin:0;
+      font-size:.95rem;
+      opacity:.8;
+      flex:0 0 auto;
+      text-align:center;
     }
+
+    /* When image is revealed, we tighten spacing slightly for small screens */
+    .tight h1{ font-size:clamp(1.7rem, 5.5vw, 3.2rem); }
+    .tight .panel{ padding:12px; gap:10px; }
   </style>
 </head>
 
 <body>
-  <main class="wrap">
-    <h1>Will you be my valentine?</h1>
+  <canvas id="confetti"></canvas>
 
-    <section class="panel">
+  <main class="wrap" id="wrap">
+    <h1 id="title">Will you be my valentine?</h1>
+
+    <section class="panel" id="panel">
       <div class="btnRow" id="arena">
-        <button id="yesBtn">Yes 💖</button>
-        <button id="noBtn">No 🙃</button>
+        <button id="yesBtn" type="button">Yes 💖</button>
+        <button id="noBtn" type="button" aria-label="No (good luck clicking)">No 🙃</button>
       </div>
 
-      <div id="reveal">
-        <img src="/Valentine2026/Valentine.jpg?v=3" alt="A special photo" />
+      <div id="reveal" aria-hidden="true">
+        <!-- Your image path (case-sensitive) -->
+        <img id="photo" src="/Valentine2026/Valentine.jpg?v=7" alt="A special photo" />
       </div>
 
-      <p class="note">(You can try “No”… if you dare 😄)</p>
+      <p id="note">(Try clicking “No” 😄)</p>
     </section>
   </main>
 
   <script>
-    const arena = document.getElementById('arena');
-    const noBtn = document.getElementById('noBtn');
+    const wrap   = document.getElementById('wrap');
+    const panel  = document.getElementById('panel');
+    const title  = document.getElementById('title');
+    const arena  = document.getElementById('arena');
+    const noBtn  = document.getElementById('noBtn');
     const yesBtn = document.getElementById('yesBtn');
     const reveal = document.getElementById('reveal');
+    const note   = document.getElementById('note');
+    const photo  = document.getElementById('photo');
 
+    // ---------- Make image always fit (no scroll) ----------
+    function fitImageToViewport() {
+      // Total usable viewport height (svh handled by CSS; use innerHeight for precision)
+      const vh = window.innerHeight;
+
+      const wrapRect  = wrap.getBoundingClientRect();
+      const titleRect = title.getBoundingClientRect();
+      const panelRect = panel.getBoundingClientRect();
+      const arenaRect = arena.getBoundingClientRect();
+      const noteRect  = (note && note.offsetParent !== null) ? note.getBoundingClientRect() : { height: 0 };
+
+      // How much vertical space we have INSIDE the panel for the image:
+      // panel height itself is already within wrap/viewport, but we compute remaining after controls.
+      // padding + gaps are already in layout; we measure actual remaining via panel height minus known blocks.
+      const panelStyles = getComputedStyle(panel);
+      const padTop = parseFloat(panelStyles.paddingTop) || 0;
+      const padBottom = parseFloat(panelStyles.paddingBottom) || 0;
+
+      // If reveal is visible, it will take remaining flex space. We want the img to fit within that remaining.
+      // Compute maximum possible image height as:
+      // viewport height minus (wrap padding + title height + panel paddings + arena height + note height + some safety)
+      const wrapStyles = getComputedStyle(wrap);
+      const wrapPadTop = parseFloat(wrapStyles.paddingTop) || 0;
+      const wrapPadBottom = parseFloat(wrapStyles.paddingBottom) || 0;
+
+      const safety = 14; // tiny buffer to avoid 1px overflow on some mobile browsers
+
+      const maxImgH = vh
+        - wrapPadTop - wrapPadBottom
+        - titleRect.height
+        - 12 /* wrap gap approx */
+        - padTop - padBottom
+        - arenaRect.height
+        - (reveal.classList.contains('show') ? 10 : 0)
+        - noteRect.height
+        - safety;
+
+      const finalMax = Math.max(120, Math.floor(maxImgH)); // keep it sane
+      photo.style.maxHeight = finalMax + "px";
+    }
+
+    // Call after image loads (so browser knows dimensions), and on resize
+    window.addEventListener('resize', fitImageToViewport);
+    photo.addEventListener('load', fitImageToViewport);
+
+    // ---------- "No" button frantic + never overlaps YES ----------
     let dodges = 0;
     let jitterTimer = null;
 
     const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 
+    function intersects(a, b) {
+      return !(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom);
+    }
+
+    function pickSafeSpot() {
+      const arenaRect = arena.getBoundingClientRect();
+      const noRect = noBtn.getBoundingClientRect();
+      const yesRect = yesBtn.getBoundingClientRect();
+
+      const padding = 6;
+
+      const maxX = arenaRect.width - noRect.width - padding;
+      const maxY = arenaRect.height - noRect.height - padding;
+
+      // try a few random spots that don't overlap YES
+      for (let i = 0; i < 20; i++) {
+        const x = clamp(padding + Math.random() * maxX, padding, maxX);
+        const y = clamp(padding + Math.random() * maxY, padding, maxY);
+
+        // construct proposed rect in viewport coords
+        const proposed = {
+          left: arenaRect.left + x,
+          top: arenaRect.top + y,
+          right: arenaRect.left + x + noRect.width,
+          bottom: arenaRect.top + y + noRect.height
+        };
+
+        // slightly inflate yes rect so No doesn't sit too close
+        const yesInflate = 10;
+        const yesFat = {
+          left: yesRect.left - yesInflate,
+          top: yesRect.top - yesInflate,
+          right: yesRect.right + yesInflate,
+          bottom: yesRect.bottom + yesInflate
+        };
+
+        if (!intersects(proposed, yesFat)) return { x, y };
+      }
+
+      // fallback: shove to left side
+      return { x: padding, y: padding };
+    }
+
     function dodge() {
       dodges++;
 
-      const arenaRect = arena.getBoundingClientRect();
-      const btnRect = noBtn.getBoundingClientRect();
-
-      const padding = 6;
-      const maxX = arenaRect.width - btnRect.width - padding;
-      const maxY = arenaRect.height - btnRect.height - padding;
-
-      const x = clamp(Math.random() * maxX, padding, maxX);
-      const y = clamp(Math.random() * maxY, padding, maxY);
-
+      const { x, y } = pickSafeSpot();
       const duration = clamp(220 - dodges * 12, 70, 220);
 
       noBtn.animate(
@@ -211,12 +338,33 @@
 
         let curX = parseFloat(noBtn.style.left);
         let curY = parseFloat(noBtn.style.top);
-
         if (Number.isNaN(curX) || Number.isNaN(curY)) return;
 
         const amp = clamp(6 + dodges * 1.2, 6, 22);
-        const nx = clamp(curX + (Math.random() * 2 - 1) * amp, padding, maxX);
-        const ny = clamp(curY + (Math.random() * 2 - 1) * amp, padding, maxY);
+
+        let nx = clamp(curX + (Math.random()*2-1)*amp, padding, maxX);
+        let ny = clamp(curY + (Math.random()*2-1)*amp, padding, maxY);
+
+        // keep away from YES during jitter too
+        const noRect = noBtn.getBoundingClientRect();
+        const yesRect = yesBtn.getBoundingClientRect();
+        const proposed = {
+          left: arenaRect.left + nx,
+          top: arenaRect.top + ny,
+          right: arenaRect.left + nx + noRect.width,
+          bottom: arenaRect.top + ny + noRect.height
+        };
+        const yesInflate = 10;
+        const yesFat = {
+          left: yesRect.left - yesInflate,
+          top: yesRect.top - yesInflate,
+          right: yesRect.right + yesInflate,
+          bottom: yesRect.bottom + yesInflate
+        };
+        if (intersects(proposed, yesFat)) {
+          const alt = pickSafeSpot();
+          nx = alt.x; ny = alt.y;
+        }
 
         const d = clamp(140 - dodges * 4, 60, 140);
 
@@ -232,15 +380,120 @@
 
     noBtn.addEventListener('pointerenter', dodge);
     noBtn.addEventListener('pointermove', () => { if (dodges >= 2) dodge(); });
-    noBtn.addEventListener('touchstart', e => { e.preventDefault(); dodge(); }, { passive: false });
+    noBtn.addEventListener('touchstart', e => { e.preventDefault(); dodge(); }, { passive:false });
     noBtn.addEventListener('click', e => { e.preventDefault(); dodge(); });
 
+    // ---------- Confetti ----------
+    const canvas = document.getElementById('confetti');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.floor(window.innerWidth * dpr);
+      canvas.height = Math.floor(window.innerHeight * dpr);
+      canvas.style.width = window.innerWidth + "px";
+      canvas.style.height = window.innerHeight + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    window.addEventListener('resize', () => { resizeCanvas(); });
+    resizeCanvas();
+
+    let confettiRunning = false;
+    let confettiParticles = [];
+    let confettiEndAt = 0;
+
+    function startConfetti(ms = 2200) {
+      const now = performance.now();
+      confettiEndAt = now + ms;
+      confettiRunning = true;
+
+      // burst
+      const count = 220;
+      for (let i = 0; i < count; i++) {
+        confettiParticles.push({
+          x: Math.random() * window.innerWidth,
+          y: -20 - Math.random() * window.innerHeight * 0.3,
+          vx: (Math.random() * 2 - 1) * 1.8,
+          vy: 2 + Math.random() * 4.2,
+          size: 4 + Math.random() * 6,
+          rot: Math.random() * Math.PI,
+          vr: (Math.random() * 2 - 1) * 0.12,
+          // random bright colors
+          color: `hsl(${Math.floor(Math.random() * 360)}, 90%, 60%)`,
+          shape: Math.random() < 0.25 ? "circle" : "rect"
+        });
+      }
+
+      requestAnimationFrame(tickConfetti);
+    }
+
+    function tickConfetti(t) {
+      if (!confettiRunning) return;
+
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+      confettiParticles = confettiParticles.filter(p => p.y < window.innerHeight + 60);
+
+      for (const p of confettiParticles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.rot += p.vr;
+
+        // slight drift
+        p.vx *= 0.99;
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.fillStyle = p.color;
+
+        if (p.shape === "circle") {
+          ctx.beginPath();
+          ctx.arc(0, 0, p.size * 0.45, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size * 0.6);
+        }
+        ctx.restore();
+      }
+
+      const now = performance.now();
+      if (now > confettiEndAt && confettiParticles.length === 0) {
+        confettiRunning = false;
+        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        return;
+      }
+
+      // If time is up, stop adding new particles—let them fall out naturally
+      if (now > confettiEndAt) {
+        // no-op
+      }
+
+      requestAnimationFrame(tickConfetti);
+    }
+
+    // ---------- Yes click: reveal, remove note, confetti, fit everything ----------
     yesBtn.addEventListener('click', () => {
       reveal.classList.add('show');
+      reveal.setAttribute('aria-hidden', 'false');
+      wrap.classList.add('tight');
+
       yesBtn.textContent = 'Yay!! 💘';
       noBtn.style.display = 'none';
       if (jitterTimer) clearInterval(jitterTimer);
+
+      // remove note after yes
+      if (note) note.style.display = 'none';
+
+      // Fit image to exact remaining space (no scroll/zoom)
+      fitImageToViewport();
+
+      // Confetti 🎉
+      startConfetti(2400);
     });
+
+    // Initial fit pass (even before reveal; harmless)
+    fitImageToViewport();
   </script>
 </body>
 </html>
